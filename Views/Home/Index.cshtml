@@ -1,0 +1,69 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model List<Project>
+
+
+<html lang="ru">
+<head>
+    <title>
+        NLMK
+    </title>
+</head>
+<body>
+<div class="sidebar">
+    <div class="project-choose-options-wrapper">
+        <select class="choose-project">
+            <option value="">Выбор проекта</option>
+            @if (Model.Count != 0)
+            {
+                @foreach (var project in Model)
+                {
+                    <option value="@project.Id">@project.Name</option>
+                }
+            }
+        </select>
+        <select class="choose-stage">
+            <option value="">Выбор стадии</option>
+            <option value="@ProjectsMetaData.Stages.OPR">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.OPR)</option>
+            <option value="@ProjectsMetaData.Stages.PPR">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.PPR)</option>
+            <option value="@ProjectsMetaData.Stages.PD">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.PD)</option>
+            <option value="@ProjectsMetaData.Stages.RD">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.RD)</option>
+        </select>
+    </div>
+    <div class="project-hierarchy-wrapper">
+        <h2>Иерархия проекта</h2>
+        <div class="project-hierarchy-elements">
+            @Html.Partial("Partial/HierarchyPartial", new Project())
+        </div>
+    </div>
+</div>
+<div class="main-content">
+    <div class="project-filters-wrapper">
+        <select class="project-type-filter">
+            <option value="">Фильтр по направленю проекта</option>
+            <option value="@ProjectsMetaData.Types.Building">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Building)</option>
+            <option value="@ProjectsMetaData.Types.Technology">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Technology)</option>
+            <option value="@ProjectsMetaData.Types.Electric">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Electric)</option>
+        </select>
+        <button class="hide-projects">Скрыть "0"</button>
+    </div>
+    <div class="table-wrapper">
+        <thead>
+        <tr>
+            <td>Направление</td>
+            <td>Код</td>
+            <td>Документ</td>
+            <td>Норматив чел./час.</td>
+            <td>Кол-во</td>
+            <td>Итого (все)</td>
+        </tr>
+        </thead>
+        <tbody>
+        @Html.Partial("Partial/TablePartial", new List<ProjectObject>())
+        </tbody>
+    </div>
+    <button>Экспорт</button>
+</div>
+</body>
+</html>

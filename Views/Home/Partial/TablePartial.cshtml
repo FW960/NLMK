@@ -1,0 +1,27 @@
+﻿@model List<ProjectObject>?
+
+@if (Model is null)
+{
+    <tr>Выберите проект</tr>
+}
+
+@if (Model.Count == 0)
+{
+    <tr>Нет информации</tr>
+}
+else
+{
+    foreach (var modelObj in Model)
+    {
+        <tr>
+            <td>@ProjectsMetaData.Localize(modelObj.Type)</td>
+            <td>@modelObj.Id</td>
+            <td>@modelObj.Document</td>
+            <td>@modelObj.WorkingHoursStandard</td>
+            <td>
+                <input type="number" value="@modelObj.WorkedInHours">
+            </td>
+            <td>@modelObj.TotalWorkingHours</td>
+        </tr>
+    }
+}
