@@ -1,37 +1,32 @@
 ﻿namespace NLMK.Models;
 
-public class ProjectObject : GeneralProjectModel
+public class Object : GeneralModel
 {
     public readonly string RelatedProjectId;
     
     public readonly string? RelatedObjectId;
     
     public readonly int WorkingHoursStandard;
-    
     public int WorkedInHours { get; set; }
     
     public readonly int TotalWorkingHours;
 
     public readonly ProjectsMetaData.Stages Stage;
-    
-    public ProjectsMetaData.Types Type;
-    
-    public List<ProjectObject> ChildObjects { get; set; }
+    public List<Object> ChildObjects { get; set; }
     
     public readonly string Name;
 
-    public ProjectObject(string relatedProjectId, int workingHoursStandard,
-        int totalWorkingHours, string name, ProjectsMetaData.Types type, ProjectsMetaData.Stages stage)
+    public Object(string relatedProjectId, int workingHoursStandard,
+        int totalWorkingHours, string name, ProjectsMetaData.Types type, ProjectsMetaData.Stages stage) : base(type)
     {
         RelatedProjectId = relatedProjectId;
         WorkingHoursStandard = workingHoursStandard;
         TotalWorkingHours = totalWorkingHours;
         Name = name;
-        Type = type;
         Stage = stage;
     }
 
-    public ProjectObject(string id)
+    public Object(string id)
     {
         Id = id;
     }
