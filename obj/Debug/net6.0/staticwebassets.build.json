@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "xCvBJO5cKFEBs21YH1GM9N9gcm7zFLVbGuW0Bfsl+pg=",
+  "Hash": "nXYfO6krhGjzhudctYs+Rxv19ydq2N3vSDOuX8a/EgE=",
   "Source": "NLMK",
   "BasePath": "_content/NLMK",
   "Mode": "Default",
@@ -66,6 +66,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\site.css"
+    },
+    {
+      "Identity": "C:\\Users\\windo\\RiderProjects\\NLMK\\NLMK\\NLMK\\wwwroot\\css\\style.css",
+      "SourceId": "NLMK",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\windo\\RiderProjects\\NLMK\\NLMK\\NLMK\\wwwroot\\",
+      "BasePath": "_content/NLMK",
+      "RelativePath": "css/style.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\style.css"
     },
     {
       "Identity": "C:\\Users\\windo\\RiderProjects\\NLMK\\NLMK\\NLMK\\wwwroot\\favicon.ico",

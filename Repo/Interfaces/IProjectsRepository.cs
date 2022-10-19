@@ -10,7 +10,9 @@ public interface IProjectsRepository
     /// <returns></returns>
     public List<Project> GetProjects();
     public bool PatchObject(ProjectObject projectObject);
-    public bool RemoveObject(string objectId);
-    public bool GetProject(string projectId, out Project project);
+    public bool RemoveObject(int objectId);
+    public bool GetProject(int projectId, out Project project);
     public bool AddObject(ProjectObject projectObject);
+    public bool GetAllProjectInfo(int projectId, out Project project);
+    public bool Export(List<ProjectObject> projectObjects);
 }

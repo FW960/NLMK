@@ -8,13 +8,21 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Aspose.Cells" Version="22.10.0" />
       <PackageReference Include="EntityFramework" Version="6.4.4" />
+      <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.2.9" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.10" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.10">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.9" />
+      <PackageReference Include="NReco" Version="2.0.3" />
+      <PackageReference Include="NReco.PdfGenerator" Version="1.2.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="wwwroot\css\style.css" />
     </ItemGroup>
 
 </Project>

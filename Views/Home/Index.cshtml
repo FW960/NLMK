@@ -1,69 +1,532 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+@using Object = NLMK.Models.ProjectObject
 @model List<Project>
 
 
-<html lang="ru">
+<html lang="ru" xmlns="http://www.w3.org/1999/html">
 <head>
     <title>
         NLMK
     </title>
+    <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-<div class="sidebar">
-    <div class="project-choose-options-wrapper">
-        <select class="choose-project">
-            <option value="">Выбор проекта</option>
-            @if (Model.Count != 0)
-            {
-                @foreach (var project in Model)
-                {
-                    <option value="@project.Id">@project.Name</option>
-                }
-            }
-        </select>
-        <select class="choose-stage">
-            <option value="">Выбор стадии</option>
-            <option value="@ProjectsMetaData.Stages.OPR">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.OPR)</option>
-            <option value="@ProjectsMetaData.Stages.PPR">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.PPR)</option>
-            <option value="@ProjectsMetaData.Stages.PD">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.PD)</option>
-            <option value="@ProjectsMetaData.Stages.RD">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.RD)</option>
-        </select>
+<div class="wrapper">
+    <div class="modal-shadow hidden">
+        <div class="edit-panel">
+        <div class="close-button" onclick="displayEditingPanel(true)">x</div>
+            <select id="select-edit-mode" class="choose">
+                <option value="">Выберите опцию</option>
+                <option value="1">Добавить</option>
+                <option value="2">Редактировать</option>
+                <option value="3">Удалить</option>
+            </select>
+            <select class="select-object choose">
+            </select>
+            <div class="input-boxes-wrapper">
+                <p class="input-text">Название объекта</p>
+                <input class="name-input" type="text"/>
+                <p class="input-text">Название документа</p>
+                <input class="document-input" type="text"/>
+                <select id="project-type-create" class="choose">
+                    <option value="-1">Направление</option>
+                    <option value="@Convert.ToInt32(ProjectsMetaData.Types.Technology)">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Technology)</option>
+                    <option value="@Convert.ToInt32(ProjectsMetaData.Types.Electric)">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Electric)</option>
+                    <option value="@Convert.ToInt32(ProjectsMetaData.Types.Building)">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Building)</option>
+                </select>
+                <select id="choose-stage-create" class="choose">
+                    <option value="-1">Выбор стадии</option>
+                    <option value="@Convert.ToInt32(ProjectsMetaData.Stages.OPR)">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.OPR)</option>
+                    <option value="@Convert.ToInt32(ProjectsMetaData.Stages.PPR)">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.PPR)</option>
+                    <option value="@Convert.ToInt32(ProjectsMetaData.Stages.PD)">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.PD)</option>
+                    <option value="@Convert.ToInt32(ProjectsMetaData.Stages.RD)">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.RD)</option>
+                </select>
+                <p class="input-text parent-object-text">Родительский объект</p>
+                <select class="select-related-object choose">
+                    
+                </select>
+                <p class="input-text">Стандарт рабочих часов</p>
+                <input class="input-hours" type="number"/>
+                <p class="input-text">Индекс объекта на уровне текущей иерархии</p>
+                <input class="input-order" type="number"/>
+            </div>
+            <div class="save-button" onclick="SendEditRemoveAddRequest()">Сохранить</div>
+        </div>
     </div>
-    <div class="project-hierarchy-wrapper">
-        <h2>Иерархия проекта</h2>
-        <div class="project-hierarchy-elements">
-            @Html.Partial("Partial/HierarchyPartial", new Project())
+    <div class="sidebar">
+        <div class="project-choose-options-wrapper">
+            <select class="choose-project" onchange="GetAllProjectInfo()">
+                <option value="">Выбор проекта</option>
+                @if (Model.Count != 0)
+                {
+                    @foreach (var project in Model)
+                    {
+                        <option value="@project.ProjectId">@project.Name</option>
+                    }
+                }
+            </select>
+            <select id="choose-stage-filter" class="choose">
+                <option value="-1">Выбор стадии</option>
+                <option value="@Convert.ToInt32(ProjectsMetaData.Stages.OPR)">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.OPR)</option>
+                <option value="@Convert.ToInt32(ProjectsMetaData.Stages.PPR)">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.PPR)</option>
+                <option value="@Convert.ToInt32(ProjectsMetaData.Stages.PD)">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.PD)</option>
+                <option value="@Convert.ToInt32(ProjectsMetaData.Stages.RD)">@ProjectsMetaData.Localize(ProjectsMetaData.Stages.RD)</option>
+            </select>
+        </div>
+        <div class="project-hierarchy-wrapper">
+            <p class="project-hierarchy-header">Иерархия проекта</p>
+            <div class="project-hierarchy-elements">
+                @Html.Partial("Partial/HierarchyPartial", new Project())
+            </div>
+            <div id="hierarchy-editing" onclick="displayEditingPanel(false)">Редактирование иерархии</div>
+        </div>
+    </div>
+    <div class="main-content">
+        <button class="export-button" onclick="Export()">Экспорт</button>
+        <div class="project-filters-wrapper">
+            <select id="project-type-filter">
+                <option value="-1">Фильтр по направленю проекта</option>
+                <option value="@Convert.ToInt32(ProjectsMetaData.Types.Technology)">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Technology)</option>
+                <option value="@Convert.ToInt32(ProjectsMetaData.Types.Electric)">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Electric)</option>
+                <option value="@Convert.ToInt32(ProjectsMetaData.Types.Building)">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Building)</option>
+            </select>
+            <div class="hide-projects" onclick="HideZero()">Скрыть "0"</div>
+        </div>
+        <div class="table-wrapper">
+            @Html.Partial("Partial/TablePartial", new Project {ProjectId = -1})
         </div>
     </div>
 </div>
-<div class="main-content">
-    <div class="project-filters-wrapper">
-        <select class="project-type-filter">
-            <option value="">Фильтр по направленю проекта</option>
-            <option value="@ProjectsMetaData.Types.Building">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Building)</option>
-            <option value="@ProjectsMetaData.Types.Technology">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Technology)</option>
-            <option value="@ProjectsMetaData.Types.Electric">@ProjectsMetaData.Localize(@ProjectsMetaData.Types.Electric)</option>
-        </select>
-        <button class="hide-projects">Скрыть "0"</button>
-    </div>
-    <div class="table-wrapper">
-        <thead>
-        <tr>
-            <td>Направление</td>
-            <td>Код</td>
-            <td>Документ</td>
-            <td>Норматив чел./час.</td>
-            <td>Кол-во</td>
-            <td>Итого (все)</td>
-        </tr>
-        </thead>
-        <tbody>
-        @Html.Partial("Partial/TablePartial", new List<ProjectObject>())
-        </tbody>
-    </div>
-    <button>Экспорт</button>
-</div>
+
 </body>
 </html>
+<script>
+
+var model;
+
+let hideZeroClicked = false;
+
+document.querySelector("#hierarchy-editing").classList.add("hidden");
+
+async function GetAllProjectInfo()
+{
+    let id = document.querySelector(".choose-project").value;
+    
+    let resp = await fetch("GetAllProjectInfo/id="+ id);
+    
+    if (resp.ok)
+    {
+        model = await resp.json();
+        
+        document.querySelector(".project-hierarchy-elements").innerHTML = model.htmlHierarchyPartial;
+        
+        document.querySelector(".table-wrapper").innerHTML = model.htmlTablePartial;
+        
+        let selectObjectOptionsHtml = "<option value='-1'>Выберите объект</option>" + RenderSelectProjectOptions(model.project);
+        
+        document.querySelector(".select-object").innerHTML = selectObjectOptionsHtml;
+        
+        document.querySelector(".select-related-object").innerHTML = selectObjectOptionsHtml;
+        
+        document.querySelector("#hierarchy-editing").classList.remove("hidden");
+    }
+}
+function RenderSelectProjectOptions(models)
+{
+    let str = "";
+    
+    for(let i = 0; i < models.childObjects.length; i++)
+    {
+        str += `<option value="${models.childObjects[i].objectId}">${models.childObjects[i].name}</option>`;
+        
+        if (models.childObjects[i].childObjects != undefined)
+        {
+            if (models.childObjects[i].childObjects.length != 0)
+            {
+                str += RenderSelectProjectOptions(models.childObjects[i]);
+            }            
+        }
+
+    }
+    return str;
+}
+document.getElementById("choose-stage-filter").addEventListener("change", async function()
+{
+    let stage = document.getElementById("choose-stage-filter").value;
+    
+    let type = document.getElementById("project-type-filter").value;
+    
+    let nodes = document.querySelector("tbody").getElementsByTagName("tr");
+    
+    if (type != -1)
+    {
+            if (stage == -1)
+            {
+               for (let i = 0; i < nodes.length; i++)
+               {
+                   if (nodes[i].getAttribute("type") == type)
+                        nodes[i].classList.remove("hidden");
+               } 
+            }else
+            {
+               for (let i = 0; i < nodes.length; i++)
+               {
+                   if (nodes[i].getAttribute("stage") == stage && nodes[i].getAttribute("type") == type)
+                   {
+                       nodes[i].classList.remove("hidden");
+                   }else
+                   {
+                       nodes[i].classList.add("hidden");
+                   }
+               } 
+            }        
+    }else
+    {
+        
+        if (stage == -1)
+        {
+           for (let i = 0; i < nodes.length; i++)
+           {
+               nodes[i].classList.remove("hidden");
+           } 
+        }else
+        {
+           for (let i = 0; i < nodes.length; i++)
+           {
+               if (nodes[i].getAttribute("stage") == stage)
+               {
+                   nodes[i].classList.remove("hidden");
+               }else
+               {
+                   nodes[i].classList.add("hidden");
+               }
+           } 
+        }
+    
+    }
+    
+})
+document.getElementById("project-type-filter").addEventListener("change", async function()
+{
+    let stage = document.getElementById("choose-stage-filter").value;
+    
+    let type = document.getElementById("project-type-filter").value;
+    
+    let nodes = document.querySelector("tbody").getElementsByTagName("tr");
+    
+    if (stage != -1)
+    {
+        if (type == -1)
+        {
+           for (let i = 0; i < nodes.length; i++)
+           {
+               if (nodes[i].getAttribute("stage") == stage)
+                    nodes[i].classList.remove("hidden");
+               
+           } 
+        }else
+        {
+           for (let i = 0; i < nodes.length; i++)
+           {
+               if (nodes[i].getAttribute("type") == type && nodes[i].getAttribute("stage") == stage)
+               {
+                   nodes[i].classList.remove("hidden");
+               }else
+               {
+                   nodes[i].classList.add("hidden");
+               }
+           } 
+        }
+    }else
+    {
+        if (type == -1)
+        {
+           for (let i = 0; i < nodes.length; i++)
+           {
+               nodes[i].classList.remove("hidden");
+           } 
+        }else
+        {
+           for (let i = 0; i < nodes.length; i++)
+           {
+               if (nodes[i].getAttribute("type") == type)
+               {
+                   nodes[i].classList.remove("hidden");
+               }else
+               {
+                   nodes[i].classList.add("hidden");
+               }
+           } 
+        }
+    }
+})
+document.querySelector("#select-edit-mode").addEventListener("change", function (){
+    
+    let value = document.querySelector("#select-edit-mode").value;
+    
+    let selectObj = document.querySelector(".select-object");
+    
+    let save_button = document.querySelector(".save-button");
+    
+    let input_texts = document.querySelectorAll(".input-text");
+    
+    let inputs = document.querySelector(".input-boxes-wrapper").getElementsByTagName("input");
+    
+    let choose_stage = document.querySelector("#choose-stage-create");
+    
+    let project_type = document.querySelector("#project-type-create");
+    
+    let related_object_select = document.querySelector(".select-related-object");
+    
+    switch (value)
+    {
+        case "3" : 
+        {
+            selectObj.classList.add("show");
+            save_button.classList.add("show");
+            related_object_select.classList.remove("show");
+            choose_stage.classList.remove("show");
+            project_type.classList.remove("show");
+            
+            for (let i = 0; i < input_texts.length; i++)
+                input_texts[i].classList.remove("show");
+            
+            for (let i = 0; i < inputs.length; i++)
+                inputs[i].classList.remove("show");
+            
+            break;
+        } 
+        case "2":
+        {
+            selectObj.classList.add("show");
+            save_button.classList.add("show");
+            related_object_select.classList.add("show");
+            choose_stage.classList.add("show");
+            project_type.classList.add("show");
+            
+            
+            for (let i = 0; i < input_texts.length; i++)
+                input_texts[i].classList.add("show");
+            
+            for (let i = 0; i < inputs.length; i++)
+                inputs[i].classList.add("show");
+            
+            break;
+        }
+        case "1": 
+        {
+            selectObj.classList.remove("show");
+            save_button.classList.add("show");
+            related_object_select.classList.add("show");
+            choose_stage.classList.add("show");
+            project_type.classList.add("show");
+            
+            for (let i = 0; i < input_texts.length; i++)
+                input_texts[i].classList.add("show");
+            
+            for (let i = 0; i < inputs.length; i++)
+                inputs[i].classList.add("show");
+            break; 
+        }
+    }
+})
+
+async function SendEditRemoveAddRequest()
+{
+    let value = document.querySelector("#select-edit-mode").value;
+    
+    let selectedObjectId = parseInt(document.querySelector(".select-object").value);
+    
+    let related_object_select = parseInt(document.querySelector(".select-related-object").value);
+    
+    let workingHoursStandard = parseInt(document.querySelector(".input-hours").value);
+    
+    let documentName = document.querySelector(".document-input").value;
+    
+    let name = document.querySelector(".name-input").value;
+    
+    let order = parseInt(document.querySelector(".input-order").value);
+    
+    let project_type = parseInt(document.querySelector("#project-type-create").value);
+    
+    let project_stage = parseInt(document.querySelector("#choose-stage-create").value);
+    
+    let resp;
+    
+    switch (value)
+    {
+        case "3":
+        {
+            resp = await fetch("RemoveObject/id=" + selectedObjectId,
+            {
+                method : "DELETE"
+            });
+            break;
+        }
+        case "2":
+        {
+            resp = await fetch("PatchObject", 
+            {
+                method : "PATCH",
+                headers : 
+                {
+                    'Content-Type': 'application/json'
+                },
+                body : JSON.stringify(
+                {
+                    ObjectId : selectedObjectId,         
+                    Name : name,
+                    RelatedObjectId : related_object_select == -1 ? null : related_object_select,
+                    RelatedProjectId : model.project.projectId,
+                    Document : documentName,
+                    WorkingHoursStandard: workingHoursStandard,
+                    Order : order, 
+                    Type : project_type,
+                    Stage : project_stage,
+                    ChildObjects : [],
+                }),
+            })
+            break;
+        }
+        case "1":
+        {
+            resp = await fetch("AddObject", 
+            {
+                method : "POST",
+                headers : 
+                {
+                    'Content-Type': 'application/json'
+                },
+                body : JSON.stringify(
+                {
+                    ObjectId : 0,         
+                    Name : name,
+                    RelatedObjectId : related_object_select == -1 ? null : related_object_select,
+                    RelatedProjectId : model.project.projectId,
+                    Document : documentName,
+                    WorkingHoursStandard: workingHoursStandard,
+                    Order : order, 
+                    Type : project_type,
+                    Stage : project_stage,
+                    ChildObjects : [],
+                }),
+            })
+            break;
+        }
+    }
+    
+    if (resp.ok)
+    {
+        await GetAllProjectInfo();
+        
+        document.querySelector(".close-button").click();
+    }
+}
+
+function HideZero()
+{
+    let nodes = document.querySelectorAll(".td-input");
+    
+    if (hideZeroClicked)
+    {
+        for (let i = 0; i < nodes.length; i++)
+        {
+            if (nodes[i].value == 0)
+            {
+                nodes[i].parentElement.parentElement.classList.remove("zero-filter-hide");
+            }
+        }
+        hideZeroClicked = false;
+    }else
+    {
+        for (let i = 0; i < nodes.length; i++)
+        {
+            if (nodes[i].value == 0)
+            {
+                nodes[i].parentElement.parentElement.classList.add("zero-filter-hide");
+            }
+        }        
+        hideZeroClicked = true;
+    }  
+}
+function displayEditingPanel(isOpen)
+{
+    if (isOpen)
+    {
+        document.querySelector(".modal-shadow").classList.add("hidden");
+    }else
+    {
+        document.querySelector(".modal-shadow").classList.remove("hidden");
+    }
+    
+}
+async function Export()
+{
+    SetValuesFromTable();
+    
+    let resp = await fetch("/Export", 
+    {
+        method : "POST",
+        headers : 
+        {
+            "Content-Type" : "application/json"
+        },
+        body : JSON.stringify(model.project)
+    })
+    
+    if (resp.ok)
+    {
+        await GetAllProjectInfo();
+    }
+}
+
+function CalculateTable (id)
+{
+    let value = document.querySelector(`#td-`+id).value;
+    
+    let object = FindObject(model.project, id, value);
+    
+    object.linkedDocuments = value;
+    
+    let childsTD = document.querySelector(`#td-`+id).parentElement.parentElement.getElementsByTagName("td");
+    
+    childsTD[childsTD.length-1].textContent = parseInt(object.linkedDocumentsPerHierarchy) + parseInt(value);
+}
+function FindObject(object, id)
+{
+    for (let i = 0; i < object.childObjects.length; i++)
+    {
+        if (object.childObjects[i].objectId == id)
+        {           
+            return object.childObjects[i];
+        }else
+        {
+            if (object.childObjects[i].childObjects.length != 0)
+            {
+                let foundObject = FindObject(object.childObjects[i], id);
+                
+                return foundObject;
+            }
+        }
+    }
+}
+function SetValuesFromTable()
+{
+    let tableDatas = document.querySelectorAll(".td-input");
+    
+    for (let i = 0; i < tableDatas.length; i++)
+    {
+        let id = tableDatas[i].getAttribute("id").split("-")[1];
+        
+        let object = FindObject(model.project, id);
+        
+        object.linkedDocumentsPerHierarchy += parseInt(tableDatas[i].value);
+        
+        object.linkedDocuments = parseInt(tableDatas[i].value);
+    }
+}
+
+
+</script>

@@ -1,8 +1,177 @@
-﻿.sidebar{
-    position: fixed;
+﻿.wrapper {
+    display: flex;
+    border: 1px solid #000;
+    padding: 10px;
+    height: 95%;
+}
+
+.sidebar {
+    width: 300px;
+    height: 100%;
+    margin-right: 10px;
+}
+
+.project-choose-options-wrapper {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.choose-project {
+    width: 100%;
+    height: 22px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.choose {
+    width: 100%;
+    height: 22px;
+    text-align: center;
+}
+
+.project-hierarchy-wrapper {
+    border: 1px solid #000;
+    height: calc(100% - 80px);
+    position: relative;
+}
+
+.project-hierarchy-header {
+    width: 100%;
+    font-weight: 700;
+    text-align: center;
+}
+
+.table-wrapper {
+    width: 100%;
+}
+
+.main-content {
+    width: 100%;
+    position: relative;
+}
+
+.hide-projects {
+    background-color: #fff;
+    border: 0.5px solid #000;
+    margin-left: 100px;
+    cursor: pointer;
+    padding: 1px 30px;
+    border-radius: 2px;
+}
+
+.project-filters-wrapper {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.table {
+    width: 100%;
+    height: calc(100% - 100px);
+}
+
+tr {
+}
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+td {
+    text-align: center;
+}
+
+.export-button {
+    position: absolute;
+    right: 0px;
+    bottom: 5px;
+    padding: 5px 30px;
+}
+
+.object{
+    cursor: pointer;
+}
+
+.td-input{
+    border: 0;
+    text-align: center;
+}
+.hidden{
+    display: none;
+}
+#hierarchy-editing{
+    padding: 5px;
+    border-radius: 5px;
+    max-width: 115px;
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: #fff;
+    cursor: pointer;
+    text-align: center;
+    border: 1px solid #000;
+}
+.modal-shadow{
+    position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(97,97,97,0.81);
+    z-index: 10;
+}
+.edit-panel{
+    position: relative;
+    max-width: 300px;
+    max-height: 500px;
+    padding: 30px;
+    margin: 100px auto 0;
+    background-color: #fff;
     border: 1px solid #000;
-    width: 200px;
-    height: 100vh;
+}
+.edit-panel input{
+    margin: 0 auto;
+    width: 100%;
+    cursor: pointer;
+}
+.input-text{
+    margin-bottom: 5px;
+}
+#project-type-create{
+    margin: 16px auto;
+}
+#select-edit-mode{
+    margin-bottom: 16px;
+}
+.save-button{
+    padding: 5px 20px;
+    margin: 16px auto 0;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid #000;
+    border-radius: 2px;
+}
+.input-boxes-wrapper select, .input-boxes-wrapper input, .input-boxes-wrapper p{
+    display: none;
+} 
+.select-object{
+    display: none;
+}
+.save-button{
+    display: none;
+}
+.show{
+    display: block !important;
+}
+.close-button{
+    position: absolute;
+    background-color: #fff;
+    top: 0;
+    right: 0;
+    border-left: 1px solid #000;
+    border-bottom: 1px solid #000;
+    cursor: pointer;
+}
+.zero-filter-hide{
+    display: none;
 }

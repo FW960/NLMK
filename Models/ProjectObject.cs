@@ -1,33 +1,45 @@
-﻿namespace NLMK.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
-public class Object : GeneralModel
+namespace NLMK.Models;
+
+public class ProjectObject
 {
-    public readonly string RelatedProjectId;
-    
-    public readonly string? RelatedObjectId;
-    
-    public readonly int WorkingHoursStandard;
-    public int WorkedInHours { get; set; }
-    
-    public readonly int TotalWorkingHours;
+    [Key] public int ObjectId { get; set; }
 
-    public readonly ProjectsMetaData.Stages Stage;
-    public List<Object> ChildObjects { get; set; }
-    
-    public readonly string Name;
+    public string Name { get; set; }
 
-    public Object(string relatedProjectId, int workingHoursStandard,
-        int totalWorkingHours, string name, ProjectsMetaData.Types type, ProjectsMetaData.Stages stage) : base(type)
+    public int? RelatedObjectId { get; set; }
+
+    public int RelatedProjectId { get; set; }
+
+    public string Document { get; set; }
+
+    public ProjectsMetaData.Types Type { get; set; }
+
+    public ProjectsMetaData.Stages Stage { get; set; }
+
+    public int WorkingHoursStandard { get; set; }
+
+    public int Order { get; set; }
+    public int LinkedDocuments { get; set; }
+
+    private int _linkedDocumentsPerHierarchy;
+    public int LinkedDocumentsPerHierarchy
     {
-        RelatedProjectId = relatedProjectId;
-        WorkingHoursStandard = workingHoursStandard;
-        TotalWorkingHours = totalWorkingHours;
-        Name = name;
-        Stage = stage;
+        get
+        {
+            int linkedDocumentsPerHierarchy = 0;
+            foreach (var child in ChildObjects)
+            {
+                linkedDocumentsPerHierarchy += child.LinkedDocumentsPerHierarchy;
+            }
+
+            _linkedDocumentsPerHierarchy =  LinkedDocuments + linkedDocumentsPerHierarchy;
+
+            return _linkedDocumentsPerHierarchy;
+        }
+        set { _linkedDocumentsPerHierarchy = value; }
     }
 
-    public Object(string id)
-    {
-        Id = id;
-    }
+    public List<ProjectObject> ChildObjects { get; set; }
 }

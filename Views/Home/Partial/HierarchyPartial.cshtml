@@ -1,4 +1,6 @@
-﻿@model Project?
+﻿@using NLMK.Helpers;
+@using HtmlHelper = NLMK.Helpers.MyHtmlHelper
+@model Project?
 
 @if (Model is null)
 {
@@ -6,16 +8,14 @@
 }
 
 
-<h2>@Model.Name</h2>
+<h2 style="text-align: center">@Model.Name</h2>
 
 <div class="hierarchy-wrapper">
     @if (Model.ChildObjects != null)
     {
         @foreach (var topObjectModel in Model.ChildObjects)
         {
-            <div class="object" id="@topObjectModel.Id" style="display: none" onclick="displayObject(@topObjectModel.Id)">
-                @topObjectModel.Name
-            </div>
+           @Html.Raw(HtmlHelper.WriteProjectHierarchyDivElement(topObjectModel));
         }
         
     }
@@ -24,20 +24,24 @@
 
 function displayObject(id)
 {
-    let clickedNode = document.querySelector(`#${id}`);
+    event.stopPropagation()
+    
+    let clickedNode = document.getElementById(id);
     
     let childNodes = clickedNode.childNodes;
     
-    if (childNodes.length == 0)
+    if (childNodes.length < 1)
         return;
     
-    if (childNodes[0].style.display.toLowerCase() == "none")
+    if (childNodes[1].style.display.toLowerCase() == "none")
     {
-        for (let i = 0; i < childNodes.length; i++)
+        for (let i = 1; i < childNodes.length; i++)
+        {
             childNodes[i].style.display = "block";    
+        }
     }else
     {
-        for (let i = 0; i < childNodes.length; i++)
+        for (let i = 1; i < childNodes.length; i++)
             childNodes[i].style.display = "none";
     }
 }

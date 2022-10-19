@@ -6,13 +6,13 @@ using NLMK.Models;
 
 namespace NLMK.Helpers;
 
-public static class HtmlHelper
+public static class MyHtmlHelper
 {
     public static string WriteProjectHierarchyDivElement(ProjectObject projectObject)
     {
         string divElement =
             $@"<div class='object' stage='{(int) projectObject.Stage}' type='{(int) projectObject.Type}' id='{projectObject.ObjectId}' style='display: block; margin-left: 5px;' onclick='displayObject({projectObject.ObjectId})'>
-        {projectObject.Name}";
+        {projectObject.Name} {projectObject.Order}";
 
         if (projectObject.ChildObjects.Count == 0)
         {
@@ -33,7 +33,7 @@ public static class HtmlHelper
     {
         string divElement =
             $@"<div class='object' stage='{(int) projectObject.Stage}' type='{(int) projectObject.Type}' id='{projectObject.ObjectId}' style='display: none; margin-left: {margin}px;' onclick='displayObject({projectObject.ObjectId})'>
-        {projectObject.Name}";
+        {projectObject.Name} {projectObject.Order}";
 
         if (projectObject.ChildObjects.Count == 0)
         {
@@ -51,26 +51,24 @@ public static class HtmlHelper
         }
     }
 
-    public static string WriteProjectTable(ProjectObject project)
+    public static string WriteProjectTable(ProjectObject projectObject)
     {
-        string tableData = $@"<tr>
-            <td>{ProjectsMetaData.Localize(project.Type)}</td>
-            <td>{project.ObjectId}</td>
-            <td>{project.Document}</td>
-            <td>{project.WorkingHoursStandard}</td>
-            <td>
-                <input type='number' value='{project.WorkedInHours}'>
-            </td>
-            <td>{project.TotalWorkingHours}</td>
-            </tr>";
+        string tableData = $@"<tr type='{(int) projectObject.Type}' stage='{(int) projectObject.Stage}''>
+        <td>{ProjectsMetaData.Localize(projectObject.Type)}</td>
+        <td>{projectObject.ObjectId}</td>
+        <td>{projectObject.Document}</td>
+        <td>{projectObject.WorkingHoursStandard}</td>
+        <td><input class='td-input' onchange='CalculateTable({projectObject.ObjectId})' id='td-{projectObject.ObjectId}' type='number' value ='{projectObject.LinkedDocuments}'/></td>
+        <td>{projectObject.LinkedDocumentsPerHierarchy}</td>
+        </tr>";
 
-        if (project.ChildObjects.Count == 0)
+        if (projectObject.ChildObjects.Count == 0)
         {
             return tableData;
         }
         else
         {
-            foreach (var childObject in project.ChildObjects)
+            foreach (var childObject in projectObject.ChildObjects)
             {
                 tableData += WriteProjectTable(childObject);
             }
@@ -78,7 +76,56 @@ public static class HtmlHelper
             return tableData;
         }
     }
-    
+
+    public static string GenerateTable(Project project)
+    {
+        string table = @"<table>
+        <thead>
+            <tr>
+            <td>Направление</td>
+            <td>Код</td>
+            <td>Документ</td>
+            <td>Норматив чел./час.</td>
+            <td>Кол-во</td>
+            <td>Итого (все)</td>
+            </tr>
+        </thead>";
+        table += "<tbody>";
+
+        foreach (var childObject in project.ChildObjects)
+        {
+            table += GenerateTable(childObject);
+        }
+
+        table += "</tbody>";
+        table += "</table>";
+
+        return table;
+    }
+
+    private static string GenerateTable(ProjectObject projectObject)
+    {
+        string tableRow = $@"<tr>
+        <td>{ProjectsMetaData.Localize(projectObject.Type)}</td>
+        <td>{projectObject.ObjectId}</td>
+        <td>{projectObject.Document}</td>
+        <td>{projectObject.WorkingHoursStandard}</td>
+        <td>{projectObject.LinkedDocuments}</td>
+        <td>{projectObject.LinkedDocumentsPerHierarchy}</td>
+        </tr>";
+
+        if (projectObject.ChildObjects.Count > 0)
+        {
+            foreach (var childObject in projectObject.ChildObjects)
+            {
+                tableRow += GenerateTable(childObject);
+            }
+        }
+
+        return tableRow;
+    }
+
+
     public static async Task<string> RenderViewToStringAsync<TModel>(this Controller controller, string viewNamePath,
         TModel model)
     {
@@ -95,7 +142,7 @@ public static class HtmlHelper
                     controller.HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as
                         ICompositeViewEngine;
 
-                ViewEngineResult viewResult = null;
+                ViewEngineResult viewResult;
 
                 if (viewNamePath.EndsWith(".cshtml"))
                     viewResult = viewEngine.GetView(viewNamePath, viewNamePath, false);

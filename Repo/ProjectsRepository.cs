@@ -18,7 +18,9 @@ public class ProjectsRepository : IProjectsRepository
     {
         try
         {
-            var projects = _dbContext.Set<Project>().ToList();
+            var projects = _dbContext.Projects.ToList();
+
+            _dbContext.ChangeTracker.Clear();
 
             return projects;
         }
@@ -32,10 +34,16 @@ public class ProjectsRepository : IProjectsRepository
     {
         try
         {
-            var result = _dbContext.Set<ProjectObject>().Update(projectObject);
+            _dbContext.ChangeTracker.Clear();
+            var result = _dbContext.ProjectObjects.Update(projectObject);
 
             if (result.State == EntityState.Modified)
+            {
+                _dbContext.SaveChanges();
+                _dbContext.ChangeTracker.Clear();
+
                 return true;
+            }
 
             return false;
         }
@@ -45,14 +53,29 @@ public class ProjectsRepository : IProjectsRepository
         }
     }
 
-    public bool RemoveObject(string objectId)
+    public bool RemoveObject(int objectId)
     {
         try
         {
-            var result = _dbContext.Set<ProjectObject>().Remove(new ProjectObject(objectId));
+            _dbContext.ChangeTracker.Clear();
+            var result = _dbContext.ProjectObjects.Remove(new ProjectObject {ObjectId = objectId});
 
             if (result.State == EntityState.Deleted)
+            {
+                _dbContext.SaveChanges();
+                var childObjects = _dbContext.ProjectObjects.Where(x => x.RelatedObjectId == objectId).ToList();
+
+                if (childObjects.Count > 0)
+                {
+                    foreach (var childObject in childObjects)
+                    {
+                        RemoveObject(childObject.ObjectId);
+                    }
+                }
+
+
                 return true;
+            }
 
             return false;
         }
@@ -62,15 +85,18 @@ public class ProjectsRepository : IProjectsRepository
         }
     }
 
-    public bool GetProject(string projectId, out Project project)
+    public bool GetProject(int projectId, out Project project)
     {
         try
         {
-            var result = _dbContext.Set<Project>().Find(projectId);
+            var result = _dbContext.Projects.Find(projectId);
 
             if (result is not null)
             {
                 project = result;
+
+                _dbContext.ChangeTracker.Clear();
+
                 return true;
             }
             else
@@ -90,10 +116,16 @@ public class ProjectsRepository : IProjectsRepository
     {
         try
         {
-            var result = _dbContext.Set<ProjectObject>().Add(projectObject);
+            var result = _dbContext.ProjectObjects.Add(projectObject);
 
             if (result.State == EntityState.Added)
+            {
+                _dbContext.SaveChanges();
+
+                _dbContext.ChangeTracker.Clear();
+                
                 return true;
+            }
 
             return false;
         }
@@ -103,33 +135,60 @@ public class ProjectsRepository : IProjectsRepository
         }
     }
 
-    public Project GetAllProjectInfo(string projectId)
+    public bool GetAllProjectInfo(int projectId, out Project project)
     {
         try
         {
-            var project = _dbContext.Set<Project>().Find(projectId);
+            project = _dbContext.Projects.Find(projectId);
 
             if (project is not null)
             {
-                project.ChildObjects = _dbContext.Set<ProjectObject>().Where(x => x.RelatedProjectId == project.Id)
-                    .Select(x => new ProjectObject(projectId, x.WorkingHoursStandard, x.TotalWorkingHours, x.Name,
-                        x.Type, x.Stage))
+                project.ChildObjects = _dbContext.ProjectObjects
+                    .Where(x => x.RelatedProjectId == projectId && x.RelatedObjectId == null).OrderBy(x => x.Order)
                     .ToList();
 
                 project.ChildObjects.ForEach(x => x.ChildObjects = new List<ProjectObject>());
 
                 FillProjectInfo(project.ChildObjects);
 
-                return project;
+                _dbContext.ChangeTracker.Clear();
+
+                return true;
             }
             else
             {
-                return null;
+                return false;
             }
         }
         catch
         {
-            return null;
+            project = new Project();
+            return false;
+        }
+    }
+
+    public bool Export(List<ProjectObject> projectObjects)
+    {
+        try
+        {
+            
+            foreach (var childObject in projectObjects)
+            {
+                _dbContext.ChangeTracker.Clear();
+                _dbContext.ProjectObjects.Attach(childObject);
+                _dbContext.Entry(childObject).Property(x => x.LinkedDocuments).IsModified = true;
+                _dbContext.Entry(childObject).Property(x => x.LinkedDocumentsPerHierarchy).IsModified = true;
+                _dbContext.SaveChanges();
+
+                if (childObject.ChildObjects.Count != 0)
+                    Export(childObject.ChildObjects);
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 
@@ -137,13 +196,10 @@ public class ProjectsRepository : IProjectsRepository
     {
         foreach (var relatedObject in relatedObjects)
         {
-
             try
             {
-                relatedObject.ChildObjects = _dbContext.Set<ProjectObject>()
-                    .Where(x => x.RelatedObjectId == relatedObject.Id)
-                    .Select(x => new ProjectObject(relatedObject.RelatedProjectId, x.WorkingHoursStandard,
-                        x.TotalWorkingHours, x.Name, x.Type, x.Stage)).ToList();
+                relatedObject.ChildObjects = _dbContext.ProjectObjects
+                    .Where(x => x.RelatedObjectId == relatedObject.ObjectId).OrderBy(x => x.Order).ToList();
 
                 if (relatedObject.ChildObjects.Count != 0)
                 {
@@ -156,7 +212,6 @@ public class ProjectsRepository : IProjectsRepository
                 //todo logger
                 continue;
             }
-            
         }
     }
 }
